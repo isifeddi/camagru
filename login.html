@@ -1,0 +1,60 @@
+<!DOCTYPE <!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8" />
+        <link rel="stylesheet" href="site.css"/>
+        <title>Login</title>
+        <style>
+            body{
+                background: #91b7b3;
+            }
+            .login{
+                background: blue;
+                border-radius: 6px;
+                border: 6px solid grey;
+                margin: auto;
+                width: 300px;
+                margin-top:30%;
+
+            }
+            h1{
+                text-align: center;
+            }
+            header{
+                background-color: #FAFAFA;
+                border-bottom: 1px solid #cccccc;
+                position: fixed;
+                top:0;
+                left:0;
+                width:100%;
+            }
+        </style>
+    </head>
+
+    <header>
+            <a href="home.html"><i class="fas fa-home"></i></a>
+            <a href="search.html"><i class="fas fa-search"></i></a>
+            <a href="camera.html"><i class="fas fa-camera"></i></a>
+            <a href="profile.html"><i class="far fa-user"></i></a>
+    </header>
+    
+    <body>
+        <div class="login">
+        <h1>sign in</h1>
+        <br />
+        <form method="post" action="login.php" >
+            <p>
+                <label ><strong>Login</strong></label><br/>
+                <input class="input1" type="text" name="login" id="login" />
+                <br />
+                <br />
+                <label><strong>Password</strong></label><br/>
+                <input class="input2" type="password" name="pass" id="pass" />            
+                <br/>
+                <br/>
+                <input class="button" type="submit" value="Submit" />
+            </p>
+        </form>
+        </div>
+    </body>
+</html>
