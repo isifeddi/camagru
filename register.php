@@ -1,9 +1,10 @@
-<!DOCTYPE <!DOCTYPE html>
+<?php include('server.php')?>
+<!DOCTYPE html>
 <html>
     <head>
         <meta charset="utf-8" />
         <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.8.1/css/all.css" rel="stylesheet"  type='text/css'>
-        <title>Login</title>
+        <title>Register</title>
         <style>
             header{
                 background-color: #FAFAFA;
@@ -26,6 +27,7 @@
                 font-size: 25px;
             }
             body{
+                height: 100vh;
                 background: #BBD2C5;  
                 background: -webkit-linear-gradient(to top, #536976, #BBD2C5);
                 background: linear-gradient(to top, #536976, #BBD2C5);
@@ -47,6 +49,7 @@
 
             }
             .button{
+                border:1px solid;
                 border-radius: 24px;
                 color: white;
                 margin-left: 15px;
@@ -54,22 +57,29 @@
                 height: 30px;
                 background-color: rgb(127, 146, 146);
             }
-            .input1, .input2{
+            .input1{
                 margin-left: 15px;
                 width : 270px;
                 height: 30px;
-                border: 0;
+                border: none;
                 background: transparent;
                 border-top: transparent ;
                 border-left: transparent ;
                 border-right: transparent ;
-                border-bottom: 4px solid ;
+                border-bottom: 2px solid ;
+                border-radius: 5px;
                 color: rgb(127, 146, 146);
             }
-            
             h1{
                 text-align: center;
                 color: white;
+            }
+            #d{
+                margin-left: 15px;
+                color:white;
+                }
+            #s{
+                color: rgb(190, 243, 243);
             }
             header{
                 background-color: #FAFAFA;
@@ -90,19 +100,49 @@
     
     <body>
         <div class="login">
-        <h1>Sign In</h1>
+        <h1>Sign Up</h1>
         <br />
-        <form method="post" action="login.php" >
+        <form method="post" action="register.php" >
             <p>
-                <label ><strong>Login</strong></label><br/>
-                <input class="input1" type="text" name="login" id="login" />
+                <label ><strong>First name</strong></label><br/>
+                <input class="input1" type="text" name="firstname"  />
                 <br />
                 <br />
+                <label><strong>Last name</strong></label><br/>
+                <input class="input1" type="text" name="lastname"  />            
+                <br/>
+                <br/>
+                <label><strong>Birthdate</strong></label><br/>
+                <input class="input1" type="date" name="birthdate"  />
+                <br/>
+                <br/>
+                <label><strong>Gender</strong></label><br/>
+                <select class="input1" name="gender">
+                    <option value="m">Male</option>
+                    <option value="f">Female</option>
+                </select>
+                <br/>
+                <br/>
+                <label ><strong>Email</strong></label><br/>
+                <input class="input1" type="text" name="email"  />
+                <br />
+                <br />
+                <label><strong>Username</strong></label><br/>
+                <input class="input1" type="text" name="username"/>            
+                <br/>
+                <br/>
                 <label><strong>Password</strong></label><br/>
-                <input class="input2" type="password" name="pass" id="pass" />            
+                <input class="input1" type="password" name="password1"  />
+                <br/>
+                <br/>
+                <label><strong>Confirm password</strong></label><br/>
+                <input class="input1" type="password" name="password2"  />
                 <br/>
                 <br/>
                 <input class="button" type="submit" value="Submit" />
+                <br/>
+                <br/>
+                <p id="d">You already have an account ? <a id="s" href="login.html">Sign In</a></p>
             </p>
         </form>
         </div>
