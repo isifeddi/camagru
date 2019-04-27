@@ -1,4 +1,5 @@
-<?php include('server.php')?>
+
+
 <!DOCTYPE html>
 <html>
     <head>
@@ -102,7 +103,7 @@
         <div class="login">
         <h1>Sign Up</h1>
         <br />
-        <form method="post" action="register.php" >
+        <form method="post" action="s.php" >
             <p>
                 <label ><strong>First name</strong></label><br/>
                 <input class="input1" type="text" name="firstname"  />
@@ -132,7 +133,7 @@
                 <br/>
                 <br/>
                 <label><strong>Password</strong></label><br/>
-                <input class="input1" type="password" name="password1"  />
+                <input class="input1" type="password" name="password"  />
                 <br/>
                 <br/>
                 <label><strong>Confirm password</strong></label><br/>
