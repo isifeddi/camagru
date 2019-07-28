@@ -244,6 +244,7 @@ class Users extends Controller{
                 'checkbox_firstname' => $_POST['checkbox_firstname'],
                 'checkbox_email' => $_POST['checkbox_email'],
                 'checkbox_new_password' => $_POST['checkbox_new_password'],
+                'sem' => 0,
                 'edit_username_err' => '',
                 'edit_lastname_err' => '',
                 'edit_firstname_err' => '',
@@ -286,6 +287,9 @@ class Users extends Controller{
                 else if (!filter_var($data['edit_email'], FILTER_VALIDATE_EMAIL)) {
                     $data['edit_email_err'] = 'Email is not valid';
                 }
+                else if(!empty($data['edit_email'])){
+                    $data['sem'] = 1;
+                }
             } else
                 $data['edit_email'] = $_SESSION['user_email'];
 
@@ -305,9 +309,21 @@ class Users extends Controller{
             if(empty($data['edit_firstname_err']) && empty($data['edit_lastname_err']) && empty($data['edit_username_err']) && empty($data['edit_email_err']) && empty($data['edit_new_password_err']) && empty($data['edit_password_err']))
             {
 
-                if($this->userModel->edit($data))
+                if($this->userModel->edit($data)){
                     $this->view('users/edit', $data);
-                else{
+                    if($data['sem'] == 1){
+                        if($this->c_send_email($data['edit_email']))
+                        {
+                            $this->userModel->activation($data['edit_username'], 0);
+                            flash('edit_send_success', 'You should verify your account before logging in next time');
+                        }
+                        else
+                        {
+                            flash('edit_email_fail', 'Error sending confirmation email, please retry', 'alert alert-danger');
+                            $this->view('users/edit',$data);
+                        }
+                    }
+                }else{
                     $data['edit_password_err'] = 'Incorrect password';
                     $this->view('users/edit', $data);
                 }
@@ -362,23 +378,30 @@ class Users extends Controller{
     public function c_send_email($email){
         $destinataire = $email;
         $sujet = "Activate your account" ;
-        $entete = "From: users@Camagru.isifeddi" ;
         $str = "cv89tyui56opa4sdfg*-_+bqwer123hjklzxnm7";
         $cle = str_shuffle($str);
  
-        $message = 'Welcome to Camagru,
- 
-            To activate your account, Please copy/paste the following code in the verification page:
+        $message = '
+        <p>Welcome to Camagru,
+            <br /><br />
+            To verify your account, Please copy/paste the code below in the verification page :
+        </p>
+        <p>
+            <br/>
+            Code = '.$cle.'
+        </p>
+        <p>
+            <br />--------------------------------------------------------
+            <br />This is an automatic mail , please do not reply.
+        </p> ';
+        // Always set content-type when sending HTML email_fail
+        $headers = "MIME-Version: 1.0" . "\r\n";
+        $headers .= "Content-type:text/html;charset=UTF-8" . "\r\n";
 
- 
-            CODE = '.$cle.'
+        // More headers
+        $headers .= 'From: <isifeddi@Camagru.ma>' . "\r\n";
 
- 
-            -------------------------------------------------
-            This is an automatic mail , please do not reply.';
-
-
-        mail($destinataire, $sujet, $message, $entete); // Envoi du mail
+        mail($destinataire, $sujet, $message, $headers); // Envoi du mail
         if($this->userModel->update_code($email, $cle))
             return true;
         else
@@ -398,11 +421,14 @@ class Users extends Controller{
             To reset your password, Please click on the link below or copy/paste it in your navigator :
         </p>
         <p>
-            <br />
-            <a href="http://localhost/Camagru/users/reset_password?email='.$email.'&amp;cle='.$cle.'">click</a>
+            <br/>
+            To recover your account click here 
+            <a href="http://localhost/Camagru/users/reset_password/?email='.$email.'&cle='.$cle.'">
+            <button type="button" class="btn btn-primary">Change Password</button>
+        </a>
         </p>
         <p>
-            <br />------------------------------------------------
+            <br />--------------------------------------------------------
             <br />This is an automatic mail , please do not reply.
         </p> ';
 
@@ -453,44 +479,26 @@ class Users extends Controller{
                     flash('email_fail', 'Error sending email, please retry', 'alert alert-danger');
                     $this->view('users/forgot_password',$data);
                 }
-            }else
+            }
                 $this->view('users/forgot_password',$data);
 
 
-        }
+        }else
             $this->view('users/forgot_password', $data);
     }
 
-    public function get_code(){
-
-        if($_SERVER['REQUEST_METHOD'] == 'GET')
-        {
-            $data = [
-                'get_email' => $_GET['email'],
-                'get_code' => $_GET['cle'],
-            ];
-
-            if($this->userModel->verify_get_cle($data))
-            {
-                
-                return $data['get_email'];
-            }
-            else
-            {
-                
-                return false;
-            }
-        }
-    }
-
     public function reset_password(){
-        $e = $this->get_code();
-        if($e)
+
+        if(isset($_GET['email']) && isset($_GET['cle']))
         {
-            flash('reset_link', 'You can now set a new password, and please do not forget it again ;)');
+            $email = $_GET['email'];
+            $cle = $_GET['cle'];
+              
             if($_SERVER['REQUEST_METHOD'] == 'POST')
             {
                 $data = [
+                    'get_email' => $email,
+                    'get_cle' => $cle,
                     'reset_password' => $_POST['reset_password'],
                     'conf_reset_password' => $_POST['conf_reset_password'],
                    'reset_password_err' => '',
@@ -511,28 +519,34 @@ class Users extends Controller{
                         $data['conf_reset_password_err'] = 'Passwords does not match';
                     }
                 }
-
+                
                 if(empty($data['reset_password_err']) && empty($data['conf_reset_password_err']))
                 {
-                    if($this->userModel->reset($data, $e))
+                    $data['reset_password'] = password_hash($data['reset_password'], PASSWORD_DEFAULT);
+                    if($this->userModel->reset($data))
                     {
                         flash('reset_success', 'Your password has been reset successfully');
                         redirect('users/login');
                     }
                     else{
-                        flash('reset_link_fail', 'retry');
-                        redirect('users/forgot_password');
+                        die('reset failed');
                     }
                 }
                 else
                     $this->view('users/reset_password', $data);
             }
+            else
+            {
+                $data = [
+                    
+                    'reset_password' => '',
+                    'conf_reset_password' => '',
+                   'reset_password_err' => '',
+                    'conf_reset_password_err' => '',
+                ];
 
                 $this->view('users/reset_password', $data);
-        }
-        else{
-            flash('reset_link_fail', 'retry', 'alert alert-danger');
-            redirect('users/forgot_password');
+            }
         }
     }
 

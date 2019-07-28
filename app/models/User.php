@@ -105,7 +105,7 @@ class User {
 	{
 		$this->db->query('
 
-			UPDATE `users` SET `firstname`=:edit_firstname,`lastname`=:edit_lastname,`username`=:edit_username,`email`=:edit_email,`password`=:edit_password WHERE id = :id');
+			UPDATE `users` SET `firstname`=:edit_firstname,`lastname`=:edit_lastname,`username`=:edit_username,`email`=:edit_email,`password`=:edit_password  WHERE id = :id');
 
 		$this->db->bind(':edit_firstname', $data['edit_firstname']);
 		$this->db->bind(':edit_lastname', $data['edit_lastname']);
@@ -156,7 +156,7 @@ class User {
 	}
 
 
-	public function activate($username , $actif){
+	public function activation($username , $actif){
 
 		$this->db->query('UPDATE  `users` SET `actif`= :actif WHERE username = :username');
 		$this->db->bind(':username', $username);
@@ -176,7 +176,7 @@ class User {
 
 		if($row && $data['code'] == $row->cle && $data['verify_username'] == $row->username)
 		{
-			if($this->activate($row->username, 1)){
+			if($this->activation($row->username, 1)){
 				
 				return true;
 			}
@@ -217,23 +217,23 @@ class User {
 		}
 	}
 
-	public function verify_get_cle($data){
-		$row = $this->findUserByUsername($data['get_email']);
-		if($row && $data['get_email'] == $row->email && $data['get_code'] == $row->r_cle)
+	public function verify_get_cle($email, $cle){
+		$row = $this->findUserByEmail($email);
+		if($row && $email == $row->email && $cle == $row->r_cle)
 			return true;
 		else
 			return false;
 	}
 
 
-	public function reset($data, $e)
+	public function reset($data)
 	{
-		$row = $this->findUserByEmail($e);
+		$row = $this->findUserByEmail($data['get_email']);
 		if($row)
 		{
 			$this->db->query('UPDATE `users` SET `password`=:password WHERE email= :email');
 			$this->db->bind(':password', $data['reset_password']);
-			$this->db->bind(':email', $e);
+			$this->db->bind(':email', $data['get_email']);
 
 			if($this->db->execute()){
 				return true;

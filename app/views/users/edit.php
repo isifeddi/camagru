@@ -5,8 +5,9 @@
         <div class="col-md-6">
             <div class="card">
                 <div class="card-header bg-dark text-white btn">
-                    <strong>Profile
-                    </strong>
+                    <?php flash('edit_send_success');?>
+                    <?php flash('edit_email_fail'); ?>
+                    <strong>Profile</strong>
                 </div>
                 <div class="card-body" >
                 <form action="<?php echo URLROOT ;?>/users/edit" method="post">

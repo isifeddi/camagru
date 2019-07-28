@@ -13,16 +13,16 @@
 				<article class="card-body">
 					<div class="col-lg-3"></div>
 					<div class="col-lg-6"></div>
-					<form  action="<?php echo URLROOT;?>/users/reset_password" method="post">
+					<form  method="post">
 
 						<div class="form-group">
 								<label for="reset_password">New password<sup>*</sup></label>
-								<input type="text" name="reset_password" class="form-control form-control-lg <?php echo(!empty($data['reset_password_err'])) ? 'is-invalid' : ''; ?>" value="<?php echo $data['reset_password'];?>">
+								<input type="password" name="reset_password" class="form-control form-control-lg <?php echo(!empty($data['reset_password_err'])) ? 'is-invalid' : ''; ?>" value="<?php echo $data['reset_password'];?>">
 								<span class="invalid-feedback"><?php echo $data['reset_password_err'];?></span>
 						</div>
 						<div class="form-group">
             				<label for="conf_reset_password">Confirm new password<sup>*</sup></label>
-            				<input type="text" name="conf_reset_password" class="form-control form-control-lg <?php echo (!empty($data['conf_reset_password_err'])) ? 'is-invalid' : ''; ?>">
+            				<input type="password" name="conf_reset_password" class="form-control form-control-lg <?php echo (!empty($data['conf_reset_password_err'])) ? 'is-invalid' : ''; ?>">
             				<span class="invalid-feedback"><?php echo $data['conf_reset_password_err'];?></span>
           				</div>
 							
