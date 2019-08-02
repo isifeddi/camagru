@@ -331,10 +331,32 @@ class Users extends Controller{
             else
                 $this->view('users/edit', $data);
 
-        }else
+        }else{
+            $data = [
+                'id' => '',
+                'edit_username' => '',
+                'edit_lastname' => '',
+                'edit_firstname' => '',
+                'edit_email' => '',
+                'edit_new_password' => '',
+                'edit_password' => '',
+                'checkbox_username' => '',
+                'checkbox_lastname' => '',
+                'checkbox_firstname' => '',
+                'checkbox_email' => '',
+                'checkbox_new_password' => '',
+                'sem' => 0,
+                'edit_username_err' => '',
+                'edit_lastname_err' => '',
+                'edit_firstname_err' => '',
+                'edit_email_err' => '',
+                'edit_new_password_err' => '',
+                'edit_password_err' => '',
 
+            ];
             $this->view('users/edit', $data);
-        
+        }
+
     }
 
     public function verification(){
@@ -371,8 +393,15 @@ class Users extends Controller{
             }
                 $this->view('users/verification', $data);
         }
-        else
+        else{
+            $data = [
+                'verify_username' => '',
+                'code' => '',
+                'verify_username_err' => '',
+                'code_err' => '',
+            ];
             $this->view('users/verification', $data);
+        }
     }
 
     public function c_send_email($email){
@@ -423,7 +452,7 @@ class Users extends Controller{
         <p>
             <br/>
             To recover your account click here 
-            <a href="http://localhost/Camagru/users/reset_password/?email='.$email.'&cle='.$cle.'">
+            <a href="http://localhost/Camagru/users/reset_password/?email='.urlencode($email).'&cle='.urlencode($cle).'">
             <button type="button" class="btn btn-primary">Change Password</button>
         </a>
         </p>
@@ -482,9 +511,14 @@ class Users extends Controller{
             }
                 $this->view('users/forgot_password',$data);
 
+        }else{
+            $data = [
 
-        }else
+                'forgot_email' => '',
+                'forgot_email_err' => '',
+           ];
             $this->view('users/forgot_password', $data);
+        }
     }
 
     public function reset_password(){
@@ -493,60 +527,67 @@ class Users extends Controller{
         {
             $email = $_GET['email'];
             $cle = $_GET['cle'];
-              
-            if($_SERVER['REQUEST_METHOD'] == 'POST')
+
+            if($this->userModel->verify_get_cle($email, $cle))
             {
-                $data = [
-                    'get_email' => $email,
-                    'get_cle' => $cle,
-                    'reset_password' => $_POST['reset_password'],
-                    'conf_reset_password' => $_POST['conf_reset_password'],
-                   'reset_password_err' => '',
-                    'conf_reset_password_err' => '',
-                ];
-
-                if(empty($data['reset_password'])){
-                    $data['reset_password_err'] = 'Please enter password';
-                }else if (strlen($data['reset_password']) < 6) {
-                    $data['reset_password_err'] = 'Password must be at least 6 characters';
-                }
-
-                //Confirm pass
-                if(empty($data['conf_reset_password'])){
-                    $data['conf_reset_password_err'] = 'Please confirm password';
-                }else{
-                    if ($data['reset_password'] != $data['conf_reset_password'] ){
-                        $data['conf_reset_password_err'] = 'Passwords does not match';
-                    }
-                }
-                
-                if(empty($data['reset_password_err']) && empty($data['conf_reset_password_err']))
+                if($_SERVER['REQUEST_METHOD'] == 'POST')
                 {
-                    $data['reset_password'] = password_hash($data['reset_password'], PASSWORD_DEFAULT);
-                    if($this->userModel->reset($data))
+                    $data = [
+                       'get_email' => $email,
+                        'get_cle' => $cle,
+                        'reset_password' => $_POST['reset_password'],
+                        'conf_reset_password' => $_POST['conf_reset_password'],
+                       'reset_password_err' => '',
+                        'conf_reset_password_err' => '',
+                    ];
+
+                   if(empty($data['reset_password'])){
+                       $data['reset_password_err'] = 'Please enter password';
+                    }else if (strlen($data['reset_password']) < 6) {
+                        $data['reset_password_err'] = 'Password must be at least 6 characters';
+                   }
+
+                    //Confirm pass
+                    if(empty($data['conf_reset_password'])){
+                        $data['conf_reset_password_err'] = 'Please confirm password';
+                    }else{
+                        if ($data['reset_password'] != $data['conf_reset_password'] ){
+                            $data['conf_reset_password_err'] = 'Passwords does not match';
+                        }
+                    }
+                
+                    if(empty($data['reset_password_err']) && empty($data['conf_reset_password_err']))
                     {
-                        flash('reset_success', 'Your password has been reset successfully');
-                        redirect('users/login');
+                        $data['reset_password'] = password_hash($data['reset_password'], PASSWORD_DEFAULT);
+                        if($this->userModel->reset($data))
+                        {
+                            flash('reset_success', 'Your password has been reset successfully');
+                            redirect('users/login');
+                            $c = 'x';
+                            $this->userModel->update_r_code($data['get_email'], $c);
+
+                        }
+                        else{
+                            die('reset failed');
+                        }
                     }
-                    else{
-                        die('reset failed');
-                    }
-                }
                 else
                     $this->view('users/reset_password', $data);
-            }
-            else
-            {
-                $data = [
+                }
+                else
+                {
+                    $data = [
                     
-                    'reset_password' => '',
-                    'conf_reset_password' => '',
-                   'reset_password_err' => '',
-                    'conf_reset_password_err' => '',
-                ];
+                        'reset_password' => '',
+                       'conf_reset_password' => '',
+                       'reset_password_err' => '',
+                        'conf_reset_password_err' => '',
+                    ];
 
-                $this->view('users/reset_password', $data);
-            }
+                    $this->view('users/reset_password', $data);
+                }
+            }else
+                die('Wrong parameters');
         }
     }
 
