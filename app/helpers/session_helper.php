@@ -1,16 +1,9 @@
 <?php
 session_start();
 
-//Flash msg helper
-// Ex : flash('register success', 'you are registred')
-// Display in view echo flash('register_success');
-
 function flash($name = '', $message ='', $class = 'alert alert-success'){
 	 if (!empty($name)){
 	 	if(!empty($message) && empty($_SESSION[$name])){
-	 		if(!empty($_SESSION[$name])){
-	 			unset($_SESSION[$name]);
-	 		}
 
 	 		if(!empty($_SESSION[$name. '_class'])){
 	 			unset($_SESSION[$name. '_class']);
@@ -27,4 +20,11 @@ function flash($name = '', $message ='', $class = 'alert alert-success'){
 	 	}
 	 }
 
+}
+
+function isLoggedIn(){
+	if(isset($_SESSION['user_id']))
+		return true;
+	else
+		return false;
 }

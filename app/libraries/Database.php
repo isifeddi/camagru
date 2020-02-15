@@ -21,9 +21,11 @@ class Database{
 			echo $this->erreur;
 		}
 	}
+
 	 public function query($sql){
 	 	$this->stmt = $this->dbh->prepare($sql);
 	 }
+
 	 public function bind($param, $value, $type = null){
 	 	if(is_null($type)){
 	 		switch(true){
@@ -46,14 +48,22 @@ class Database{
 	 public function execute(){
 	 	return $this->stmt->execute();
 	 }
+
 	 public function resultSet(){
 	 	$this->execute();
 	 	return $this->stmt->fetchAll(PDO::FETCH_OBJ);
 	 }
+
 	 public function single(){
 	 	$this->execute();
 	 	return $this->stmt->fetch(PDO::FETCH_OBJ);
 	 }
+
+	 public function ftchColumn(){
+	 	$this->execute();
+	 	return $this->stmt->fetchColumn();
+	 }
+	 
 	 public function rowCount(){
 	 	return $this->stmt->rowCount();
 	 }

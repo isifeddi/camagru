@@ -11,7 +11,6 @@
                 </div>
                 <div class="card-body" >
                 <form action="<?php echo URLROOT ;?>/users/edit" method="post">
-
                     <strong>Username</strong>
                     <div class="row">
                         <div class="col-md-10">
@@ -89,7 +88,19 @@
                             </div>
                         </div>
                     </div>
+                    <br>
+                    <div class="row justify-content-center">
 
+                        <?php if($_SESSION['notif'] == 1) {?>
+                            <input type="checkbox" name="checkbox_send_notif" checked>
+                            <label class="form-check-label" for="materialIndeterminate2">Receive notifications by email</label>
+                        <?php }else {?>
+                            <input type="checkbox" name="checkbox_send_notif" unchecked>
+                            <label class="form-check-label" for="materialIndeterminate2">Receive notifications by email</label>
+                        <?php }?>
+                    </div>
+
+                    <br>
                     <div class="form-group ">
                         <strong>Current password</strong>
                         <input class="form-control form-control-lg <?php echo (!empty($data['edit_password_err'])) ? 'is-invalid' : ''; ?>" name="edit_password" type="password">
@@ -104,7 +115,9 @@
                 </form>
                 </div>
             </div>
+
         </div>
     </div>
 </div>
+
 <?php require APPROOT . '/views/inc/footer.php'; ?>

@@ -82,10 +82,11 @@ class User {
         		$_SESSION['user_lastname'] = $data['edit_lastname'];
         		$_SESSION['user_email'] = $data['edit_email'];
         		$_SESSION['user_password'] = $data['edit_password'];
+        		$_SESSION['notif'] = $data['checkbox_send_notif'];
 				if($this->update($data))
 					return true;
 				else 
-					return false;	
+					return false;
 			}
 			else
 				return false;
@@ -105,13 +106,14 @@ class User {
 	{
 		$this->db->query('
 
-			UPDATE `users` SET `firstname`=:edit_firstname,`lastname`=:edit_lastname,`username`=:edit_username,`email`=:edit_email,`password`=:edit_password  WHERE id = :id');
+			UPDATE `users` SET `firstname`=:edit_firstname,`lastname`=:edit_lastname,`username`=:edit_username,`email`=:edit_email,`password`=:edit_password, `notif`= :n  WHERE id = :id');
 
 		$this->db->bind(':edit_firstname', $data['edit_firstname']);
 		$this->db->bind(':edit_lastname', $data['edit_lastname']);
 		$this->db->bind(':edit_username', $data['edit_username']);
 		$this->db->bind(':edit_email', $data['edit_email']);
 		$this->db->bind(':edit_password', $data['edit_password']);
+		$this->db->bind(':n', $data['checkbox_send_notif']);
 		$this->db->bind(':id', $data['id']);
 
 		if($this->db->execute()){
@@ -156,10 +158,10 @@ class User {
 	}
 
 
-	public function activation($username , $actif){
+	public function activation($email , $actif){
 
-		$this->db->query('UPDATE  `users` SET `actif`= :actif WHERE username = :username');
-		$this->db->bind(':username', $username);
+		$this->db->query('UPDATE  `users` SET `actif`= :actif WHERE email = :email');
+		$this->db->bind(':email', $email);
 		$this->db->bind(':actif', $actif);
 
 		if($this->db->execute()){
@@ -170,13 +172,13 @@ class User {
 	}
 
 
-	public function verify($data){
+	public function verify($email, $cle){
 		
-		$row = $this->findUserByUsername($data['verify_username']);
+		$row = $this->findUserByEmail($email);
 
-		if($row && $data['code'] == $row->cle && $data['verify_username'] == $row->username)
+		if($row && $cle == $row->cle && $email == $row->email)
 		{
-			if($this->activation($row->username, 1)){
+			if($this->activation($row->email, 1)){
 				
 				return true;
 			}
@@ -225,7 +227,6 @@ class User {
 			return false;
 	}
 
-
 	public function reset($data)
 	{
 		$row = $this->findUserByEmail($data['get_email']);
@@ -243,7 +244,38 @@ class User {
 		}
 	}
 	///////////////////////////
+
+	public function get_commenter($user_id)
+  	{
+    $this->db->query('SELECT * FROM users WHERE id = :id');
+    $this->db->bind(':id',$user_id);
+    $result = $this->db->single();
+    if($result)
+      return ($result);
+    else
+      return false;
+  	} 
+
+  	public function get_dest($user_id)
+  	{
+    $this->db->query('SELECT * FROM users WHERE id = :id');
+    $this->db->bind(':id',$user_id);
+    $result = $this->db->single();
+    if($result)
+      return ($result);
+    else
+      return false;
+  	} 
+  	//////////////////
+
+  	public function profilePic($path, $user_id){
+      $this->db->query('UPDATE users SET profile_photo = :p WHERE id = :id');
+      $this->db->bind(':id', $user_id);
+      $this->db->bind(':p', $path);
+      if($this->db->execute())
+           return true;
+       else
+           return false;
+   }
+
 }
-
-
-

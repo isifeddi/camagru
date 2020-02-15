@@ -8,6 +8,8 @@
 				<header class="card-header">
 					<?php flash('verification_success'); ?>
 					<?php flash('reset_success'); ?>
+					<?php flash('register_success'); ?>
+					<?php flash('not_verified'); ?>
 					<a href="<?php echo URLROOT;?>/users/registration" class="float-right btn btn-outline-success mt-1">Register</a>
 					<h4 class="card-title mt-2">Login</h4>
 				</header>

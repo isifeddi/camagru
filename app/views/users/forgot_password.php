@@ -14,7 +14,7 @@
 				<article class="card-body">
 					<div class="col-lg-3"></div>
 					<div class="col-lg-6"></div>
-					<form   method="post">
+					<form  action="<?php echo URLROOT;?>/users/forgot_password" method="post">
 						<div class="form-group">
 								<label for="forgot_email">Email<sup>*</sup></label>
 								<input type="text" name="forgot_email" class="form-control form-control-lg <?php echo(!empty($data['forgot_email_err'])) ? 'is-invalid' : ''; ?>" value="<?php echo $data['forgot_email'];?>">

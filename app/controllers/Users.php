@@ -1,20 +1,24 @@
 <?php
 class Users extends Controller{
     public function __construct(){
-
+        $this->postModel = $this->model('Post');
         $this->userModel = $this->model('User');
     }
 
-
+    public function index(){
+      redirect('posts/home'); 
+      
+    }
+    
     public function registration(){
-    	//Check for post
+    	
+       if(!isLoggedIN()){ 
     	if($_SERVER['REQUEST_METHOD'] == 'POST')
     	{
-    		//Process form
-
-            //Sanitize POST data
+    		
+            
             $_POST = filter_input_array(INPUT_POST, FILTER_SANITIZE_STRING);
-            //Init data
+            
             $data =[
                 'firstname' => trim($_POST['firstname']),
                 'lastname' => trim($_POST['lastname']),
@@ -27,20 +31,24 @@ class Users extends Controller{
                 'username_err' => '',
                 'email_err' => '',
                 'password_err' => '',
-                'confirm_pass_err' => '',
+                'confirm_pass_err' => ''
                 
             ];
-            // Validate name username and email
+            
             if(empty($data['firstname'])){
                 $data['firstname_err'] = 'Please enter firstname';
-            }
+            }else if(strlen($data['firstname']) > 30)
+                $data['firstname_err'] = 'Too long';
             if(empty($data['lastname'])){
                 $data['lastname_err'] = 'Please enter lastname';
-            }
+            }else if(strlen($data['lastname']) > 30)
+                $data['lastname_err'] = 'Too long';
             if(empty($data['username'])){
                 $data['username_err'] = 'Please enter username';
-            } else {
-                //Check email
+            }else if(strlen($data['username']) > 30)
+                $data['username_err'] = 'Too long';
+            else {
+                
                 if($this->userModel->findUserByUsername($data['username'])){
                     $data['username_err'] = 'Username is already taken';
                 }
@@ -48,21 +56,25 @@ class Users extends Controller{
             if(empty($data['email'])){
                 $data['email_err'] = 'Please enter email';
             } elseif($this->userModel->findUserByEmail($data['email'])){
-                //Check email
+                
                 $data['email_err'] = 'Email is already taken';
             }else if (!filter_var($data['email'], FILTER_VALIDATE_EMAIL)) {
                 $data['email_err'] = 'Email is not valid';
             }
             
 
-            //Validate pass
             if(empty($data['password'])){
                 $data['password_err'] = 'Please enter password';
-            }else if (strlen($data['password']) < 6) {
+            }else if (strlen($data['password']) < 6)
                 $data['password_err'] = 'Password must be at least 6 characters';
-            }
+            else if (!preg_match('@[A-Z]@', $data['password']))
+                $data['password_err'] = 'Password must contain an upper case';
+            else if (!preg_match('@[a-z]@', $data['password']))
+                $data['password_err'] = 'Password must contain a  lower case';
+            else if (!preg_match('@[0-9]@', $data['password']))
+                $data['password_err'] = 'Password must contain a number';
 
-            //Confirm pass
+            
             if(empty($data['confirm_pass'])){
                 $data['confirm_pass_err'] = 'Please confirm password';
             }else{
@@ -71,20 +83,16 @@ class Users extends Controller{
                 }
             }
 
-            //Make sure errors are empty
             if(empty($data['firstname_err']) && empty($data['lastname_err']) && empty($data['username_err']) && empty($data['email_err']) && empty($data['password_err']) && empty($data['confirm_pass_err'])){
-                //Validated
-                
+ 
 
-                //Hash password
                 $data['password'] = password_hash($data['password'], PASSWORD_DEFAULT);
 
-                //Register user
                 if($this->userModel->register($data)){
                     if($this->c_send_email($data['email']))
                     {
+                        redirect('users/login');
                         flash('register_success', 'You are registred and can log in, after verifying your account');
-                        redirect('users/verification');
                     }
                     else
                     {
@@ -103,7 +111,6 @@ class Users extends Controller{
     	}
     	else 
     	{
-    		//Init data
     		$data =[
     			'firstname' => '',
     			'lastname' => '',
@@ -116,21 +123,24 @@ class Users extends Controller{
     			'username_err' => '',
     			'email_err' => '',
     			'password_err' => '',
-    			'confirm_pass_err' => '',
+    			'confirm_pass_err' => ''
     		];
     	
         	$this->view('users/registration',$data);
     	}
+      }
+      else
+        redirect('posts/home');
     }
 
     public function login(){
-    	//Check for post
+      if(!isLoggedIN()){
+    	
     	if($_SERVER['REQUEST_METHOD'] == 'POST')
     	{
-    		//Process form
-            //Sanitize POST data
+    		
             $_POST = filter_input_array(INPUT_POST, FILTER_SANITIZE_STRING);
-            //Init data
+            
             $data =[     
                 'username' => trim($_POST['username']),             
                 'password' => trim($_POST['password']),
@@ -146,27 +156,25 @@ class Users extends Controller{
                 $data['password_err'] = 'Please enter password';
             }
 
-            //Check for user
+            
             if($this->userModel->findUserByUsername($data['username'])){
-                //User found
+                
             }else {
-                //User not found
+                
                 $data['username_err'] = 'No user found';
             }
 
-            //Make sure errors are empty
+            
             if(empty($data['username_err']) && empty($data['password_err'])){
-                //Validated
-                //Check and set logged in user
                 
                     $loggedInUser = $this->userModel->login($data['username'], $data['password']);
                     if($loggedInUser){
                         if($this->userModel->is_verified($data))
-                           $this->createUserSession($loggedInUser);   
+                           $this->createUserSession($loggedInUser); 
                         else
                         {
-                            flash('not_verified', 'You are not verified, enter the code sent in your email', 'alert alert-danger');
-                            $this->view('users/verification', $data);
+                            redirect('users/login');
+                            flash('not_verified', 'You are not verified, go to your email', 'alert alert-danger');
                         }
                                           
                     }else {
@@ -180,16 +188,17 @@ class Users extends Controller{
     	}
     	else 
     	{
-    		//Init data
     		$data =[
     			'username' => '',
     			'password' => '',
     			'username_err' => '',
-    			'password_err' => '',
+    			'password_err' => ''
     		];
     	
         	$this->view('users/login',$data);
     	}
+       }else
+        redirect('posts/home');
     }
 
     public function createUserSession($user){
@@ -199,21 +208,27 @@ class Users extends Controller{
         $_SESSION['user_lastname'] = $user->lastname;
         $_SESSION['user_email'] = $user->email;
         $_SESSION['user_password'] = $user->password;
-
-        redirect('pages/index');
+        $_SESSION['notif'] = 1;
+        $_SESSION['logout_token'] = $user->cle;
+        redirect('posts/index');
     }
 
     public function logout(){
-        unset($_SESSION['user_id']);
-        unset($_SESSION['user_username']);
-        unset($_SESSION['user_firstname']);
-        unset($_SESSION['user_lastname']);
-        unset($_SESSION['user_email']);
-        session_destroy();
-        redirect('users/login');
+        if(isset($_GET['token']))
+        {
+            unset($_SESSION['user_id']);
+            unset($_SESSION['user_username']);
+            unset($_SESSION['user_firstname']);
+            unset($_SESSION['user_lastname']);
+            unset($_SESSION['user_email']);
+            session_destroy();
+            redirect('users/login');
+        }
+        else
+            redirect('posts/index');
     }
 
-    public function isloggedIn($user){
+    public function isloggedIn(){
         if(isset($_SESSION['user_id'])){
             return true;
         }else {
@@ -221,13 +236,9 @@ class Users extends Controller{
         }
     }
 
-    public function profile(){
-        $this->view('users/profile');
-    }
-
-
     public function edit()
     {
+      if(isLoggedIN()){
         if($_SERVER['REQUEST_METHOD'] == 'POST')
         {
             $_POST = filter_input_array(INPUT_POST, FILTER_SANITIZE_STRING);
@@ -244,13 +255,14 @@ class Users extends Controller{
                 'checkbox_firstname' => $_POST['checkbox_firstname'],
                 'checkbox_email' => $_POST['checkbox_email'],
                 'checkbox_new_password' => $_POST['checkbox_new_password'],
+                'checkbox_send_notif' => $_POST['checkbox_send_notif'],
                 'sem' => 0,
                 'edit_username_err' => '',
                 'edit_lastname_err' => '',
                 'edit_firstname_err' => '',
                 'edit_email_err' => '',
                 'edit_new_password_err' => '',
-                'edit_password_err' => '',
+                'edit_password_err' => ''
 
             ];
             
@@ -293,14 +305,19 @@ class Users extends Controller{
             } else
                 $data['edit_email'] = $_SESSION['user_email'];
 
-
             if(isset($data['checkbox_new_password']))
             {
                 if(empty($data['edit_new_password']))
                      $data['edit_new_password_err'] = 'Enter new password';
                 else if(strlen($data['edit_new_password']) < 6)
                     $data['edit_new_password_err'] = 'Password must be at least 6 characters';
-            } else
+                else if (!preg_match('@[A-Z]@', $data['edit_new_password']))
+                    $data['edit_new_password_err'] = 'Password must contain an upper case';
+                else if (!preg_match('@[a-z]@', $data['edit_new_password']))
+                    $data['edit_new_password_err'] = 'Password must contain a  lower case';
+                else if (!preg_match('@[0-9]@', $data['edit_new_password']))
+                    $data['edit_new_password_err'] = 'Password must contain a number';
+            }else
                 $data['edit_new_password'] = $data['edit_password'];
 
             if(empty($data['edit_password']))
@@ -309,20 +326,31 @@ class Users extends Controller{
             if(empty($data['edit_firstname_err']) && empty($data['edit_lastname_err']) && empty($data['edit_username_err']) && empty($data['edit_email_err']) && empty($data['edit_new_password_err']) && empty($data['edit_password_err']))
             {
 
+                if(isset($data['checkbox_send_notif']))
+                {   
+                    $data['checkbox_send_notif'] = 1;
+                }
+                else
+                    $data['checkbox_send_notif'] = 0;
+
                 if($this->userModel->edit($data)){
-                    $this->view('users/edit', $data);
+                    
                     if($data['sem'] == 1){
                         if($this->c_send_email($data['edit_email']))
                         {
-                            $this->userModel->activation($data['edit_username'], 0);
+                            $this->userModel->activation($data['edit_email'], 0);
+                            redirect('users/edit');
                             flash('edit_send_success', 'You should verify your account before logging in next time');
                         }
                         else
                         {
+                            $this->view('users/edit', $data);
                             flash('edit_email_fail', 'Error sending confirmation email, please retry', 'alert alert-danger');
-                            $this->view('users/edit',$data);
+                            
                         }
                     }
+                    else
+                       $this->view('users/edit', $data); 
                 }else{
                     $data['edit_password_err'] = 'Incorrect password';
                     $this->view('users/edit', $data);
@@ -356,88 +384,65 @@ class Users extends Controller{
             ];
             $this->view('users/edit', $data);
         }
+       }
+        else
+            redirect('users/login');
 
     }
 
-    public function verification(){
-
-        if($_SERVER['REQUEST_METHOD'] == 'POST')
+    public function verification()
+    {
+        if(isset($_GET['email']) && isset($_GET['cle']))
         {
-            $_POST = filter_input_array(INPUT_POST, FILTER_SANITIZE_STRING);
+            $email = $_GET['email'];
+            $cle = $_GET['cle'];
 
-            $data = [
-                'verify_username' => trim($_POST['verify_username']),
-                'code' => trim($_POST['code']),
-                'verify_username_err' => '',
-                'code_err' => '',
-            ];
-
-            if(empty($data['verify_username']))
-                $data['verify_username_err'] = 'Enter username';
-            else if(!($this->userModel->findUserByUsername($data['verify_username'])))
-                $data['verify_username_err'] = 'No user found';
-
-            if(empty($data['code'])){
-                $data['code_err'] = 'Please enter code';
-            
+            if($this->userModel->verify($email, $cle))
+            {
+                redirect('users/login');
+                flash('verification_success', 'Verified successfully, you can login to your account');
+                $c = str_shuffle('cv89tyui56opa4sdfg*-_+bqwer123hjklzxnm7');
+                $this->userModel->update_code($email, $c);
             }
-
-            if(empty($data['verify_username_err']) && empty($data['code_err'])){
-                //Validated
-                if($this->userModel->verify($data)){
-                    //Verified
-                    flash('verification_success', 'Verified successfully, you can login to your account');
-                    redirect('users/login');          
-                }else
-                    $data['code_err'] = 'Incorrect code';
-            }
-                $this->view('users/verification', $data);
+            else
+                die('incorrect');
         }
-        else{
-            $data = [
-                'verify_username' => '',
-                'code' => '',
-                'verify_username_err' => '',
-                'code_err' => '',
-            ];
-            $this->view('users/verification', $data);
-        }
+        else
+            die('error verifying');   
     }
 
-    public function c_send_email($email){
+    public function c_send_email($email)
+    {
         $destinataire = $email;
-        $sujet = "Activate your account" ;
+        $sujet = "Verify your account" ;
         $str = "cv89tyui56opa4sdfg*-_+bqwer123hjklzxnm7";
         $cle = str_shuffle($str);
  
         $message = '
         <p>Welcome to Camagru,
             <br /><br />
-            To verify your account, Please copy/paste the code below in the verification page :
-        </p>
-        <p>
             <br/>
-            Code = '.$cle.'
+            To verify your account click here 
+            <a href="http://localhost/Camagru/users/verification/?email='.urlencode($email).'&cle='.urlencode($cle).'">
+                <button type="button" class="btn btn-primary">Verify account</button>
+            </a>
         </p>
         <p>
             <br />--------------------------------------------------------
             <br />This is an automatic mail , please do not reply.
         </p> ';
-        // Always set content-type when sending HTML email_fail
-        $headers = "MIME-Version: 1.0" . "\r\n";
-        $headers .= "Content-type:text/html;charset=UTF-8" . "\r\n";
 
-        // More headers
+        $headers .= "Content-type:text/html;charset=UTF-8" . "\r\n";
         $headers .= 'From: <isifeddi@Camagru.ma>' . "\r\n";
 
-        mail($destinataire, $sujet, $message, $headers); // Envoi du mail
+        mail($destinataire, $sujet, $message, $headers); 
         if($this->userModel->update_code($email, $cle))
             return true;
         else
             return false;
 
     }
-
+    
     public function l_send_email($email){
         $destinataire = $email;
         $sujet = "Reset your password" ;
@@ -461,14 +466,10 @@ class Users extends Controller{
             <br />This is an automatic mail , please do not reply.
         </p> ';
 
-        // Always set content-type when sending HTML email_fail
-        $headers = "MIME-Version: 1.0" . "\r\n";
         $headers .= "Content-type:text/html;charset=UTF-8" . "\r\n";
-
-        // More headers
         $headers .= 'From: <isifeddi@Camagru.ma>' . "\r\n";
 
-        mail($destinataire, $sujet, $message, $headers); // Envoi du mail
+        mail($destinataire, $sujet, $message, $headers);
         if($this->userModel->update_r_code($email, $cle))
             return true;
         else
@@ -477,7 +478,7 @@ class Users extends Controller{
     }
 
     public function forgot_password(){
-
+      if(!isLoggedIN()){
         if($_SERVER['REQUEST_METHOD'] == 'POST')
         {
             $_POST = filter_input_array(INPUT_POST, FILTER_SANITIZE_STRING);
@@ -508,7 +509,7 @@ class Users extends Controller{
                     flash('email_fail', 'Error sending email, please retry', 'alert alert-danger');
                     $this->view('users/forgot_password',$data);
                 }
-            }
+            }else
                 $this->view('users/forgot_password',$data);
 
         }else{
@@ -519,6 +520,9 @@ class Users extends Controller{
            ];
             $this->view('users/forgot_password', $data);
         }
+      }
+       else
+        redirect('posts/home');
     }
 
     public function reset_password(){
@@ -547,7 +551,6 @@ class Users extends Controller{
                         $data['reset_password_err'] = 'Password must be at least 6 characters';
                    }
 
-                    //Confirm pass
                     if(empty($data['conf_reset_password'])){
                         $data['conf_reset_password_err'] = 'Please confirm password';
                     }else{
@@ -563,7 +566,7 @@ class Users extends Controller{
                         {
                             flash('reset_success', 'Your password has been reset successfully');
                             redirect('users/login');
-                            $c = 'x';
+                            $c = str_shuffle('cv89tyui56opa4sdfg*-_+bqwer123hjklzxnm7');
                             $this->userModel->update_r_code($data['get_email'], $c);
 
                         }
@@ -586,9 +589,12 @@ class Users extends Controller{
 
                     $this->view('users/reset_password', $data);
                 }
-            }else
-                die('Wrong parameters');
-        }
+            }else{
+                flash('reset_link_fail', 'Please retry', 'alert alert-danger');
+                redirect('users/forgot_password');
+            }
+        }else
+            redirect('posts/home');
     }
 
 }
